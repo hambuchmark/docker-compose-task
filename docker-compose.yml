@@ -1,0 +1,64 @@
+version: '3.9'
+services:
+  app:
+    image: node:18-alpine
+    command: sh -c "yarn install && yarn run dev"
+    depends_on:
+      - mysql
+    ports:
+      - 3000:3000
+    working_dir: /app
+    volumes:
+      - ./:/app
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: root
+      MYSQL_PASSWORD: secret
+      MYSQL_DB: todos
+    networks:
+      - network1
+      - network2
+  
+  mysql:
+    image: mysql
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: todos
+    networks:
+      - network2
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - 8080:80
+    environment:
+      - PMA_ARBITRARY=1
+    networks:
+      - network2
+
+  cache:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - network2 
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+
+  proxy:
+    image: nginx
+    networks:
+      - network1
+
+networks:
+  network1:
+  network2:
+
+volumes:
+  mysql-data:
