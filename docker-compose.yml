@@ -39,6 +39,7 @@ services:
       - 8080:80
     environment:
       - PMA_ARBITRARY=1
+      - PMA_ABSOLUTE_URI=http://localhost/phpmyadmin/index.php
     networks:
       - network2
 
@@ -51,10 +52,17 @@ services:
       - network2 
     command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
 
-  proxy:
+  webserver:
     image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app
     networks:
       - network1
+      - network2
 
 networks:
   network1:
